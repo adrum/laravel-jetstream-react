@@ -13,6 +13,7 @@ export default class Install extends Command {
     '$ laravel-jetstream-react install --teams',
     '$ laravel-jetstream-react install --force',
     '$ laravel-jetstream-react install --ssr',
+    '$ laravel-jetstream-react install --mantine',
   ];
 
   static flags = {
@@ -20,6 +21,7 @@ export default class Install extends Command {
     ssr: Flags.boolean({ default: false }),
     force: Flags.boolean({ default: false }),
     dark: Flags.boolean({ default: false }),
+    mantine: Flags.boolean({ default: false }),
   };
 
   static args = [];
@@ -52,6 +54,13 @@ export default class Install extends Command {
     'react-dom': '^18.3.1',
     'ziggy-js': '^1.8.2',
   };
+
+  private mantineDeps = {
+    "@mantine/core": "^7.10.0",
+    "@mantine/dates": "^7.10.0",
+    "@mantine/hooks": "^7.10.0",
+    "@mantine/notifications": "^7.10.0",
+  }
 
   private oldDeps = [
     '@inertiajs/core',
@@ -105,6 +114,11 @@ export default class Install extends Command {
     this.log('Installing dependencies');
     execSync(`npm install -S ${this.depsForInstall(this.deps)}`);
 
+    if (flags.mantine) {
+      this.log('Installing Mantine dependencies');
+      execSync(`npm install -S ${this.depsForInstall(this.mantineDeps)}`);
+    }
+
     this.log('Running install again');
     execSync('npm install');
 
@@ -147,7 +161,8 @@ export default class Install extends Command {
     fs.rmSync(path.join(process.cwd(), 'resources', 'js'), {
       recursive: true,
     });
-    this.moveStub('resources/js', 'resources/js');
+    const jsPath = flags.mantine ? 'mantine/resources/js' : 'resources/js';
+    this.moveStub(jsPath, 'resources/js');
 
     if (!flags.teams) {
       fs.rmSync(path.join(process.cwd(), 'resources', 'js', 'Pages', 'Teams'), {
